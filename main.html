@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu Snake</title>
+    <style>
+        /* Style général de la page */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Style du canvas où le jeu sera rendu */
+        #gameCanvas {
+            border: 2px solid #333;
+            background-color: #fff;
+            margin: 20px;
+        }
+
+        /* Style du score */
+        #score {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        // Récupération des éléments du DOM
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        // Configuration du jeu
+        const gridSize = 20; // Taille d'une cellule de la grille
+        const tileCount = 20; // Nombre de cellules dans la grille
+        let score = 0;
+
+        // Position initiale du serpent
+        let snake = [
+            {x: 10, y: 10}, // Tête du serpent
+        ];
+
+        // Vitesse et direction initiale
+        let velocityX = 0;
+        let velocityY = 0;
+
+        // Position de la pomme
+        let appleX = Math.floor(Math.random() * tileCount);
+        let appleY = Math.floor(Math.random() * tileCount);
+
+        // Boucle principale du jeu
+        function gameLoop() {
+            // Mise à jour de la position du serpent
+            moveSnake();
+            
+            // Vérification des collisions
+            if (checkGameOver()) {
+                alert('Game Over! Score: ' + score);
+                resetGame();
+                return;
+            }
+
+            // Effacement du canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dessin du serpent
+            drawSnake();
+            
+            // Dessin de la pomme
+            drawApple();
+
+            // Appel récursif de la boucle
+            setTimeout(gameLoop, 100);
+        }
+
+        // Fonction pour déplacer le serpent
+        function moveSnake() {
+            // Création de la nouvelle position de la tête
+            const head = {
+                x: snake[0].x + velocityX,
+                y: snake[0].y + velocityY
+            };
+
+            // Ajout de la nouvelle tête au début du tableau
+            snake.unshift(head);
+
+            // Vérification si le serpent mange une pomme
+            if (head.x === appleX && head.y === appleY) {
+                score += 10;
+                scoreElement.textContent = 'Score: ' + score;
+                // Génération d'une nouvelle pomme
+                appleX = Math.floor(Math.random() * tileCount);
+                appleY = Math.floor(Math.random() * tileCount);
+            } else {
+                // Si pas de pomme mangée, on retire la queue
+                snake.pop();
+            }
+        }
+
+        // Fonction pour dessiner le serpent
+        function drawSnake() {
+            ctx.fillStyle = 'green';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, 
+                           segment.y * gridSize, 
+                           gridSize - 2, 
+                           gridSize - 2);
+            });
+        }
+
+        // Fonction pour dessiner la pomme
+        function drawApple() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(appleX * gridSize, 
+                        appleY * gridSize, 
+                        gridSize - 2, 
+                        gridSize - 2);
+        }
+
+        // Fonction de vérification de fin de partie
+        function checkGameOver() {
+            // Collision avec les murs
+            if (snake[0].x < 0 || 
+                snake[0].x >= tileCount || 
+                snake[0].y < 0 || 
+                snake[0].y >= tileCount) {
+                return true;
+            }
+
+            // Collision avec soi-même
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[0].x === snake[i].x && 
+                    snake[0].y === snake[i].y) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Fonction de réinitialisation du jeu
+        function resetGame() {
+            snake = [{x: 10, y: 10}];
+            velocityX = 0;
+            velocityY = 0;
+            score = 0;
+            scoreElement.textContent = 'Score: 0';
+            gameLoop();
+        }
+
+        // Gestion des touches du clavier
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case 'ArrowUp':
+                    if (velocityY !== 1) {
+                        velocityX = 0;
+                        velocityY = -1;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (velocityY !== -1) {
+                        velocityX = 0;
+                        velocityY = 1;
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (velocityX !== 1) {
+                        velocityX = -1;
+                        velocityY = 0;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (velocityX !== -1) {
+                        velocityX = 1;
+                        velocityY = 0;
+                    }
+                    break;
+            }
+        });
+
+        // Démarrage du jeu
+        gameLoop();
+    </script>
+</body>
+</html>
